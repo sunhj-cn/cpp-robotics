@@ -16,7 +16,6 @@ message("EIGEN3_INCLUDE_DIR path is: ${EIGEN3_INCLUDE_DIR}")
 include_directories(./include)
 include_directories(./include/eigen3)
 
-
 ##############################
 #PathPlanning
 ##############################

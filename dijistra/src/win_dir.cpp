@@ -62,6 +62,7 @@ bool CreateDirectoryIfNotExists(const std::string& dirPath) {
         std::cout << "Directory already exists: " << dirPath << std::endl;
         // 目录已存在，删除其中的所有文件
         DeleteFilesInDirectory(dirPath);
+
         return true;
     }
 }

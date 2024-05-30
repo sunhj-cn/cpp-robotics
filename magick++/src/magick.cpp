@@ -1,4 +1,4 @@
-#include <Magick++.h>
+Ôªø#include <Magick++.h>
 #include <iostream>
 #include <vector>
 #include <cstdio> // for remove
@@ -12,7 +12,7 @@ int main() {
     InitializeMagick(nullptr);
     const char* outputFile = ".\\gif\\dijistra.gif";
     int delay = 1;
-    std::string images_path = "..\\..\\cpp_pnc\\dijistra\\numbered_images\\";
+    std::string images_path = "..\\dijistra\\numbered_images\\";
     vector<Image> imageList;
     int frameCount = 0;
     int image_num = getFileNumInData(images_path);
@@ -24,20 +24,19 @@ int main() {
         }
         Image img;
         img.read(file_path);
-        img.animationDelay(delay);// ÷°—”≥Ÿ£®µ•Œª£∫∞Ÿ∑÷÷Æ“ª√Î£©
+        img.animationDelay(delay);//
         imageList.push_back(img);
         std::cout << "Picture #" << frameCount << " has been read by magick++\n";
-        frameCount= frameCount + 300;
+        frameCount = frameCount + 40;
         //add last picture to imageList
-        if (frameCount > image_num-1) {
-            img.read(images_path + to_string(image_num-1) + ".png");
-            img.animationDelay(delay);// ÷°—”≥Ÿ£®µ•Œª£∫∞Ÿ∑÷÷Æ“ª√Î£©
+        if (frameCount > image_num - 1) {
+            img.read(images_path + to_string(image_num - 1) + ".png");
+            img.animationDelay(delay);
             imageList.push_back(img);
             std::cout << "Picture #last" << " has been read by magick++\n";
         }
     }
-    
-    // –¥»ÎµΩGIFŒƒº˛
+    //
     try {
         std::cout << " Writting to a gif file, please wait...\n";
         writeImages(imageList.begin(), imageList.end(), outputFile);
@@ -53,7 +52,7 @@ int main() {
 
 int getFileNumInData(std::string floder_path)
 {
-    fs::directory_iterator list_(floder_path);//Œƒº˛»Îø⁄»›∆˜
+    fs::directory_iterator list_(floder_path);
     int i = 0;
     for (auto& it : list_)
     {
@@ -62,4 +61,3 @@ int getFileNumInData(std::string floder_path)
     }
     return i;
 }
- 

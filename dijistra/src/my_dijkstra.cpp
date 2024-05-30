@@ -200,7 +200,7 @@ bool dijkstra_planning(Node *node_S, Node *node_G, std::vector<std::vector<Node 
 int main()
 {
     int map_size = 100;
-    float xs = 50;
+    float xs = 30;
     float ys = 35;
     float xg = 30;
     float yg = 30;

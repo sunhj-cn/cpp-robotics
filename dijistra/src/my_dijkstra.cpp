@@ -1,10 +1,4 @@
-/*************************************************************************
-  > File Name: my_dijkstra.cpp
-  > Author: sunhj
-  > Mail: 
-  > Created Time: 2024/04/26
- ************************************************************************/
-
+﻿
 #include <iostream>
 #include <cmath>
 #include <limits>
@@ -13,6 +7,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+//#include <cstdio> // for remove
+#include "../include/win_dir.h"
 using namespace std;
 
 class Node
@@ -22,33 +18,22 @@ public:
     int y;
     float cost;
     bool known; // 表明节点是否已访问
-    Node *P_node;
+    Node* P_node;
     bool has_obs;
-    Node(int x_, int y_, float cost_, Node *P_node_ = NULL, bool known_ = false, bool has_obs_ = false) : x(x_), y(y_), cost(cost_), known(known_), has_obs(has_obs_){};
+    Node(int x_, int y_, float cost_, Node *P_node_ = NULL, bool known_ = false, bool has_obs_ = false) : x(x_), y(y_), cost(cost_), P_node(P_node_), known(known_), has_obs(has_obs_){};
 };
 
 // 仿函数
-class cmp
-{
+class cmp{
 public:
     bool operator()(Node *n1, Node *n2)
     {
-        return n1->cost > n2->cost; // ??顺序
+        return n1->cost > n2->cost; 
     }
 };
 
 vector<Node> get_motion_model()
 {
-    // return {
-    //     Node(1, 0, 1),
-    //     Node(1, 1, 1.414),
-    //     Node(0, 1, 1),
-    //     Node(-1, 1, 1.414),
-    //     Node(-1, 0, 1),
-    //     Node(-1, -1, 1.414),
-    //     Node(0, -1, 1),
-    //     Node(1, -1, 1.414),
-    // };
     return {Node(1, 0, 1),
             Node(0, 1, 1),
             Node(-1, 0, 1),
@@ -69,6 +54,7 @@ bool verify_node(Node const *node, int map_size)
     }
     return false;
 }
+
 bool CheckInQueue(Node *node, priority_queue<Node *, vector<Node *>, cmp> pq)
 {
     while (!pq.empty())
@@ -82,10 +68,10 @@ bool CheckInQueue(Node *node, priority_queue<Node *, vector<Node *>, cmp> pq)
     }
     return false;
 }
-void cacl_path(Node *node_G, cv::Mat &img, float img_reso)
-{
+
+void cacl_path(Node *node_G, cv::Mat &img, float img_reso){
     Node *node = node_G;
-    while (!node->P_node == NULL)
+    while(node->P_node != NULL)
     {
         std::cout << "(" << node->x << ", " << node->y << ")" << std::endl;
         node = node->P_node;
@@ -98,7 +84,7 @@ void cacl_path(Node *node_G, cv::Mat &img, float img_reso)
     }
 }
 
-bool dijkstra_planning(Node *node_S, Node *node_G, std::vector<std::vector<Node *>> &map, int map_size, int img_reso)
+bool dijkstra_planning(Node *node_S, Node *node_G, std::vector<std::vector<Node *>> &map, int map_size, int img_reso, std::vector<cv::Mat> &frames)
 {
     // 初始化Q队列
     priority_queue<Node *, vector<Node *>, cmp> pq;
@@ -133,36 +119,30 @@ bool dijkstra_planning(Node *node_S, Node *node_G, std::vector<std::vector<Node 
                               cv::Point(map[i][j]->x * img_reso + 1, map[i][j]->y * img_reso + 1),
                               cv::Point((map[i][j]->x + 1) * img_reso, (map[i][j]->y + 1) * img_reso),
                               cv::Scalar(130, 130, 130), -1);
-                cv::imshow("sunhj's dijkstra", bg);
                 cv::waitKey(1);
             }
         }
-        // std::cout << std::endl;
     }
+
+    cv::Mat frame;
+    bg.copyTo(frame); // 保证所有帧的尺寸一致
+    frames.push_back(frame);
 
     //  循环
     while (!pq.empty())
     {
         Node *v = pq.top();
-        // std::cout << "v->x: " << v->x << std::endl;
-        // pq.pop();
-        // v->known = true;
-
-        if (v->known == 1)
-        {
-            pq.pop();
-            continue;
-        }
-        else
-        {
-            pq.pop();
-            v->known = true;
-        }
+        pq.pop();
+        if (v->known == 1){continue;}
+        else{v->known = true;}
 
         // 判断是否是终点
         if (v == node_G)
         {
             cacl_path(node_G, bg, img_reso);
+            cv::Mat frame;
+            bg.copyTo(frame); // 保证所有帧的尺寸一致
+            frames.push_back(frame);
             return true;
         }
 
@@ -199,14 +179,19 @@ bool dijkstra_planning(Node *node_S, Node *node_G, std::vector<std::vector<Node 
             {
                 pq.push(map[new_node->x][new_node->y]);
             }
-            delete new_node;
 
             cv::rectangle(bg,
                           cv::Point(new_node->x * img_reso + 1, new_node->y * img_reso + 1),
                           cv::Point((new_node->x + 1) * img_reso, (new_node->y + 1) * img_reso),
                           cv::Scalar(0, 255, 0));
+            
+            cv::Mat frame;
+            bg.copyTo(frame); // 保证所有帧的尺寸一致
+            frames.push_back(frame);
+   
             cv::imshow("sunhj's dijkstra", bg);
             cv::waitKey(1);
+            delete new_node;
         }
     }
     return false;
@@ -215,9 +200,9 @@ bool dijkstra_planning(Node *node_S, Node *node_G, std::vector<std::vector<Node 
 int main()
 {
     int map_size = 100;
-    float xs = 30;
+    float xs = 50;
     float ys = 35;
-    float xg = 45;
+    float xg = 30;
     float yg = 30;
     float reso = 1;
     int img_reso = 5;
@@ -241,13 +226,20 @@ int main()
     Node *node_S = map[(int)std::round(xs / reso)][(int)std::round(ys / reso)];
     Node *node_G = map[(int)std::round(xg / reso)][(int)std::round(yg / reso)];
     node_S->cost = 0; // start point's cost will be set to 0.
+    std::vector<cv::Mat> frames; // 用于存储gif
 
-    bool SUCCESS = dijkstra_planning(node_S, node_G, map, map_size, img_reso);
+    bool SUCCESS = dijkstra_planning(node_S, node_G, map, map_size, img_reso, frames);
     if (SUCCESS)
     {
         std::cout << "SUCCESS" << std::endl;
+        int delay = 10;
+        string folderPath = ".//numbered_images//";
+        if (CreateDirectoryIfNotExists(folderPath)) {
+            for (int i = 0; i < frames.size(); ++i) {
+                cv::imwrite(folderPath  + std::to_string(i) + std::string(".png"), frames[i]);
+            }
+        }
     }
-
     std::cout << "Press any key to quit... " << std::endl;
     std::cin.get();
     return 0;

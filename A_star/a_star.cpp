@@ -1,4 +1,4 @@
-ï»¿
+
 #include <iostream>
 #include <cmath>
 #include <limits>
@@ -7,8 +7,6 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-//#include <cstdio> // for remove
-#include "../include/win_dir.h"
 using namespace std;
 
 class Node
@@ -17,34 +15,36 @@ public:
     int x;
     int y;
     float cost;
-    bool known; // è¡¨æ˜èŠ‚ç‚¹æ˜¯å¦å·²è®¿é—®
+    bool known; // ±íÃ÷½ÚµãÊÇ·ñÒÑ·ÃÎÊ
     Node* P_node;
     bool has_obs;
-    Node(int x_, int y_, float cost_, Node *P_node_ = NULL, bool known_ = false, bool has_obs_ = false) : x(x_), y(y_), cost(cost_), P_node(P_node_), known(known_), has_obs(has_obs_){};
+    Node(int x_, int y_, float cost_, Node* P_node_ = NULL, bool known_ = false, bool has_obs_ = false) : x(x_), y(y_), cost(cost_), P_node(P_node_), known(known_), has_obs(has_obs_) {};
 };
 
-// ä»¿å‡½æ•°
-class cmp{
+// ·Âº¯Êı
+class cmp {
 public:
-    bool operator()(Node *n1, Node *n2)
+    bool operator()(Node* n1, Node* n2)
     {
-        return n1->cost > n2->cost; 
+        return n1->cost > n2->cost;
     }
 };
-
+float calc_heristic(Node* n1, Node* n2, float w = 1.0) {
+    return w * std::sqrt(std::pow(n1->x - n2->x, 2) + std::pow(n1->y - n2->y, 2));
+}
 vector<Node> get_motion_model()
 {
-    return {Node(1, 0, 1),
+    return { Node(1, 0, 1),
             Node(0, 1, 1),
             Node(-1, 0, 1),
             Node(0, -1, 1),
             Node(-1, -1, std::sqrt(2)),
             Node(-1, 1, std::sqrt(2)),
             Node(1, -1, std::sqrt(2)),
-            Node(1, 1, std::sqrt(2))};
+            Node(1, 1, std::sqrt(2)) };
 }
 
-bool verify_node(Node const *node, int map_size)
+bool verify_node(Node const* node, int map_size)
 {
     std::cout << "new node'x is : " << node->x << std::endl;
 
@@ -55,11 +55,11 @@ bool verify_node(Node const *node, int map_size)
     return false;
 }
 
-bool CheckInQueue(Node *node, priority_queue<Node *, vector<Node *>, cmp> pq)
+bool CheckInQueue(Node* node, priority_queue<Node*, vector<Node*>, cmp> pq)
 {
     while (!pq.empty())
     {
-        Node *top = pq.top();
+        Node* top = pq.top();
         pq.pop();
         if (top == node)
         {
@@ -69,46 +69,43 @@ bool CheckInQueue(Node *node, priority_queue<Node *, vector<Node *>, cmp> pq)
     return false;
 }
 
-void cacl_path(Node *node_G, cv::Mat &img, float img_reso){
-    Node *node = node_G;
-    while(node->P_node != NULL)
+void cacl_path(Node* node_G, cv::Mat& img, float img_reso) {
+    Node* node = node_G;
+    while (node->P_node != NULL)
     {
         std::cout << "(" << node->x << ", " << node->y << ")" << std::endl;
         node = node->P_node;
         cv::rectangle(img,
-                      cv::Point(node->x * img_reso + 1, node->y * img_reso + 1),
-                      cv::Point((node->x + 1) * img_reso, (node->y + 1) * img_reso),
-                      cv::Scalar(255, 0, 0), -1);
+            cv::Point(node->x * img_reso + 1, node->y * img_reso + 1),
+            cv::Point((node->x + 1) * img_reso, (node->y + 1) * img_reso),
+            cv::Scalar(255, 0, 0), -1);
         cv::imshow("sunhj's dijkstra", img);
         cv::waitKey(1);
     }
 }
 
-bool dijkstra_planning(Node *node_S, Node *node_G, std::vector<std::vector<Node *>> &map, int map_size, int img_reso, std::vector<cv::Mat> &frames)
+bool dijkstra_planning(Node* node_S, Node* node_G, std::vector<std::vector<Node*>>& map, int map_size, int img_reso, std::vector<cv::Mat>& frames)
 {
-    // åˆå§‹åŒ–Qé˜Ÿåˆ—
-    priority_queue<Node *, vector<Node *>, cmp> pq;
+    // ³õÊ¼»¯Q¶ÓÁĞ
+    priority_queue<Node*, vector<Node*>, cmp> pq;
     pq.push(node_S);
     vector<Node> motion_model = get_motion_model();
-
-    // ç»˜å›¾åˆå§‹åŒ–
+    // »æÍ¼³õÊ¼»¯
     cv::Mat bg(img_reso * map_size,
-               img_reso * map_size,
-               CV_8UC3,
-               cv::Scalar(255, 255, 255));
-    // ç»˜åˆ¶èµ·å§‹ç‚¹
+        img_reso * map_size,
+        CV_8UC3,
+        cv::Scalar(255, 255, 255));
+    // »æÖÆÆğÊ¼µã
     cv::rectangle(bg,
-                  cv::Point(node_S->x * img_reso + 1, node_S->y * img_reso + 1),
-                  cv::Point((node_S->x + 1) * img_reso, (node_S->y + 1) * img_reso),
-                  cv::Scalar(255, 0, 0), -1);
-
-    // ç»˜åˆ¶ç›®æ ‡ç‚¹
+        cv::Point(node_S->x * img_reso + 1, node_S->y * img_reso + 1),
+        cv::Point((node_S->x + 1) * img_reso, (node_S->y + 1) * img_reso),
+        cv::Scalar(255, 0, 0), -1);
+    // »æÖÆÄ¿±êµã
     cv::rectangle(bg,
-                  cv::Point(node_G->x * img_reso + 1, node_G->y * img_reso + 1),
-                  cv::Point((node_G->x + 1) * img_reso, (node_G->y + 1) * img_reso),
-                  cv::Scalar(0, 0, 255), -1);
-
-    // ç»˜åˆ¶éšœç¢ç‰©åŒºåŸŸ
+        cv::Point(node_G->x * img_reso + 1, node_G->y * img_reso + 1),
+        cv::Point((node_G->x + 1) * img_reso, (node_G->y + 1) * img_reso),
+        cv::Scalar(0, 0, 255), -1);
+    // »æÖÆÕÏ°­ÎïÇøÓò
     for (int i = 0; i < map.size(); i++)
     {
         for (int j = 0; j < map[0].size(); j++)
@@ -116,58 +113,56 @@ bool dijkstra_planning(Node *node_S, Node *node_G, std::vector<std::vector<Node 
             if (map[i][j]->has_obs == true)
             {
                 cv::rectangle(bg,
-                              cv::Point(map[i][j]->x * img_reso + 1, map[i][j]->y * img_reso + 1),
-                              cv::Point((map[i][j]->x + 1) * img_reso, (map[i][j]->y + 1) * img_reso),
-                              cv::Scalar(60, 60, 60), -1);
+                    cv::Point(map[i][j]->x * img_reso + 1, map[i][j]->y * img_reso + 1),
+                    cv::Point((map[i][j]->x + 1) * img_reso, (map[i][j]->y + 1) * img_reso),
+                    cv::Scalar(60, 60, 60), -1);
                 cv::waitKey(1);
             }
         }
     }
 
     cv::Mat frame;
-    bg.copyTo(frame); // ä¿è¯æ‰€æœ‰å¸§çš„å°ºå¯¸ä¸€è‡´
+    bg.copyTo(frame); // ±£Ö¤ËùÓĞÖ¡µÄ³ß´çÒ»ÖÂ
     frames.push_back(frame);
 
-    //  å¾ªç¯
+    //  Ñ­»·
     while (!pq.empty())
     {
-        Node *v = pq.top();
+        Node* v = pq.top();
         pq.pop();
-        if (v->known == 1){continue;}
-        else{v->known = true;}
-
-        // åˆ¤æ–­æ˜¯å¦æ˜¯ç»ˆç‚¹
+        if (v->known == 1) { continue; }
+        else { v->known = true; }
+        // ÅĞ¶ÏÊÇ·ñÊÇÖÕµã
         if (v == node_G)
         {
             cacl_path(node_G, bg, img_reso);
             cv::Mat frame;
-            bg.copyTo(frame); // ä¿è¯æ‰€æœ‰å¸§çš„å°ºå¯¸ä¸€è‡´
+            bg.copyTo(frame); // ±£Ö¤ËùÓĞÖ¡µÄ³ß´çÒ»ÖÂ
             frames.push_back(frame);
             return true;
         }
-
-        // å¯¹è¯¥èŠ‚ç‚¹è¿›è¡Œåº”ç”¨æ‰€æœ‰åŠ¨ä½œ
+        // ¶Ô¸Ã½Úµã½øĞĞÓ¦ÓÃËùÓĞ¶¯×÷
         for (int i = 0; i < motion_model.size(); i++)
         {
-            Node *new_node = new Node(v->x + motion_model[i].x,
-                                      v->y + motion_model[i].y,
-                                      v->cost + motion_model[i].cost,
-                                      v);
+            Node* new_node = new Node(v->x + motion_model[i].x,
+                v->y + motion_model[i].y,
+                /*v->cost + motion_model[i].cost+ .0 * std::sqrt(  float( std::pow(node_G->x - (v->x + motion_model[i].x), 2)
+                                                                 + std::pow(node_G->y - (v->y + motion_model[i].y), 2))),*/
+                v->cost + motion_model[i].cost + calc_heristic(v, node_G), v);
 
-            if (!verify_node(new_node, map_size)) // å¦‚æœä¸åœ¨å¢™å†…
+            if (!verify_node(new_node, map_size)) // Èç¹û²»ÔÚÇ½ÄÚ
             {
                 delete new_node;
                 continue;
             }
-            else // å¦‚æœåœ¨å¢™å†…ï¼Œç»§ç»­åˆ¤æ–­æ˜¯å¦å·²è®¿é—®
+            else // Èç¹ûÔÚÇ½ÄÚ£¬¼ÌĞøÅĞ¶ÏÊÇ·ñÒÑ·ÃÎÊ
             {
-                if (map[new_node->x][new_node->y]->known || map[new_node->x][new_node->y]->has_obs) // æ˜¯å¦å·²è®¿é—®æˆ–ä¸æ˜¯éšœç¢ç‰©
+                if (map[new_node->x][new_node->y]->known || map[new_node->x][new_node->y]->has_obs) // ÊÇ·ñÒÑ·ÃÎÊ»ò²»ÊÇÕÏ°­Îï
                 {
                     delete new_node;
                     continue;
                 }
             }
-
             // update nodes
             if (new_node->cost < map[new_node->x][new_node->y]->cost)
             {
@@ -181,14 +176,14 @@ bool dijkstra_planning(Node *node_S, Node *node_G, std::vector<std::vector<Node 
             }
 
             cv::rectangle(bg,
-                          cv::Point(new_node->x * img_reso + 1, new_node->y * img_reso + 1),
-                          cv::Point((new_node->x + 1) * img_reso, (new_node->y + 1) * img_reso),
-                          cv::Scalar(0, 255, 0));
-            
+                cv::Point(new_node->x * img_reso + 1, new_node->y * img_reso + 1),
+                cv::Point((new_node->x + 1) * img_reso, (new_node->y + 1) * img_reso),
+                cv::Scalar(0, 255, 0));
+
             cv::Mat frame;
-            bg.copyTo(frame); // ä¿è¯æ‰€æœ‰å¸§çš„å°ºå¯¸ä¸€è‡´
+            bg.copyTo(frame); // ±£Ö¤ËùÓĞÖ¡µÄ³ß´çÒ»ÖÂ
             frames.push_back(frame);
-   
+
             cv::imshow("sunhj's dijkstra", bg);
             cv::waitKey(1);
             delete new_node;
@@ -202,14 +197,14 @@ int main()
     int map_size = 100;
     float xs = 50;
     float ys = 35;
-    float xg = 30;
-    float yg = 40;
+    float xg = 10;
+    float yg = 80;
     float reso = 1;
     int img_reso = 5;
 
-    // åˆå§‹åŒ–æ‰€æœ‰èŠ‚ç‚¹map
-    std::vector<Node *> row(map_size, new Node(0, 0, 10000, NULL));
-    std::vector<std::vector<Node *>> map(map_size, row);
+    // ³õÊ¼»¯ËùÓĞ½Úµãmap
+    std::vector<Node*> row(map_size, new Node(0, 0, 10000, NULL));
+    std::vector<std::vector<Node*>> map(map_size, row);
 
     for (int i = 0; i < map.size(); i++)
     {
@@ -222,9 +217,9 @@ int main()
             }
         }
     }
-    // è·å–mapä¸­èµ·å§‹ç‚¹å’Œç»ˆç‚¹
-    Node *node_S = map[(int)std::round(xs / reso)][(int)std::round(ys / reso)];
-    Node *node_G = map[(int)std::round(xg / reso)][(int)std::round(yg / reso)];
+    // »ñÈ¡mapÖĞÆğÊ¼µãºÍÖÕµã
+    Node* node_S = map[(int)std::round(xs / reso)][(int)std::round(ys / reso)];
+    Node* node_G = map[(int)std::round(xg / reso)][(int)std::round(yg / reso)];
     node_S->cost = 0; // start point's cost will be set to 0.
     std::vector<cv::Mat> frames; // to store gif frames
 
@@ -232,12 +227,12 @@ int main()
     if (SUCCESS)
     {
         std::cout << "SUCCESS" << std::endl;
-        string folderPath = ".//numbered_images//";
+       /* string folderPath = ".//numbered_images//";
         if (CreateDirectoryIfNotExists(folderPath)) {
             for (int i = 0; i < frames.size(); ++i) {
-                cv::imwrite(folderPath  + std::to_string(i) + std::string(".png"), frames[i]);
+                cv::imwrite(folderPath + std::to_string(i) + std::string(".png"), frames[i]);
             }
-        }
+        }*/
     }
     std::cout << "Press any key to quit... " << std::endl;
     std::cin.get();

@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{240306ab-5a53-4f0c-b96a-4f6dc76be639}</ProjectGuid>
-    <RootNamespace>magick</RootNamespace>
+    <ProjectGuid>{2c178ec3-ab96-4dea-bfe3-6624a093c68b}</ProjectGuid>
+    <RootNamespace>Astar</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -112,7 +112,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,11 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\magick.cpp" />
-    <ClCompile Include="src\win_dir.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\win_dir.h" />
+    <ClCompile Include="a_star.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

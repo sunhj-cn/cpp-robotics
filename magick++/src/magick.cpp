@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstdio> // for remove
 #include <filesystem> // C++17 for handling files
+#include "win_dir.h"
 using namespace std;
 using namespace Magick;
 namespace fs = std::filesystem;
@@ -10,13 +11,18 @@ int getFileNumInData(std::string floder_path);
 
 int main() {
     InitializeMagick(nullptr);
-    const char* outputFile = ".\\gif\\dijistra.gif";
+    std::string gif_folder = ".\\gif\\";
+    std::string gif_name = "dijistra.gif";
+    std::string outputFile = gif_folder + gif_name;
+    if (!CreateDirectoryIfNotExists(gif_folder)) {
+        std::cout << "creat gif folder faided!" << std::endl;
+            return 0;
+    }
     int delay = 1;
     std::string images_path = "..\\dijistra\\numbered_images\\";
     vector<Image> imageList;
     int frameCount = 0;
     int image_num = getFileNumInData(images_path);
-    //vector<std::string> inputFiles;
     while (true) {
         string file_path = images_path + to_string(frameCount) + ".png";
         if (!fs::exists(file_path)) {
@@ -27,7 +33,7 @@ int main() {
         img.animationDelay(delay);//
         imageList.push_back(img);
         std::cout << "Picture #" << frameCount << " has been read by magick++\n";
-        frameCount = frameCount + 40;
+        frameCount = frameCount + 500;
         //add last picture to imageList
         if (frameCount > image_num - 1) {
             img.read(images_path + to_string(image_num - 1) + ".png");
